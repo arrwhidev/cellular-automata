@@ -14,31 +14,28 @@
             const WIDTH = 800;
             const HEIGHT = 600;
             const SIDE = 20;
-            const NUM_COLS = WIDTH / SIDE;
-            const NUM_ROWS =  HEIGHT / SIDE;
+            const NUM_COLS = 10;
+            const NUM_ROWS =  10;
 
             // Create an empty universe!
             const universe = [];
             for(let y = 0; y < NUM_ROWS; y++) {
                 universe[y] = new Array(NUM_COLS);
                 for(let x = 0; x < NUM_COLS; x++) {
-                    universe[y][x] = false;
+                    universe[y][x] = 0;
                 }
             }
 
-            // Toad
-            universe[10][30] = true;
-            universe[10][31] = true;
-            universe[10][32] = true;
-            universe[11][29] = true;
-            universe[11][30] = true;
-            universe[11][31] = true;
+            // Blinker
+            universe[5][4] = 1;
+            universe[5][5] = 1;
+            universe[5][6] = 1;
 
             const cellIsAlive = (y, x) => {
-                if(universe[y] && universe[y][x]) {
-                    return universe[y][x] === true;
+                if(universe[y] !== undefined && universe[y][x] !== undefined) {
+                    return universe[y][x];
                 }
-                return false;
+                return 0;
             }
 
             const getNumLiveNeighbours = (x, y) => {
@@ -57,28 +54,42 @@
             const calculateIsAlive = (x, y) => {
                 const numLiveNeighbours = getNumLiveNeighbours(x, y);
                 let isAlive = cellIsAlive(y, x);
+                // console.log(y, x, 'numLiveNeighbours:', numLiveNeighbours, 'isAlive:', isAlive);
 
-                if (!isAlive && numLiveNeighbours === 3) return true;
-                if(isAlive) {
-                    if (numLiveNeighbours < 2) return false;
-                    if (numLiveNeighbours === 2 || numLiveNeighbours === 3) return true;
-                    if (numLiveNeighbours > 3) return false;
+                if (isAlive === 1) {
+                    if (numLiveNeighbours < 2) {
+                        isAlive = 0;
+                    } else if (numLiveNeighbours === 2 || numLiveNeighbours === 3) {
+                        isAlive = 1;
+                    } else if (numLiveNeighbours > 3) {
+                        isAlive = 0;
+                    }
+                } else {
+                    if (numLiveNeighbours === 3) isAlive = 1;
                 }
 
+                // console.log('  --> returning', isAlive);
                 return isAlive;
             }
 
             const updateUniverse = () => {
                 for(let y = 0; y < NUM_ROWS; y++) {
                     for(let x = 0; x < NUM_COLS; x++) {
-                        ctx.fillStyle = universe[y][x] ? ACTIVE_COLOUR : INACTIVE_COLOUR;
-                        ctx.fillRect(x * SIDE, y * SIDE, SIDE, SIDE);
                         universe[y][x] = calculateIsAlive(x, y);
                     }
                 }
             };
+            const drawUniverse = () => {
+                for(let y = 0; y < NUM_ROWS; y++) {
+                    for(let x = 0; x < NUM_COLS; x++) {
+                        ctx.fillStyle = universe[y][x] ? ACTIVE_COLOUR : INACTIVE_COLOUR;
+                        ctx.fillRect(x * SIDE, y * SIDE, SIDE, SIDE);
+                    }
+                }
+            }
 
             let lastTime;
+            // let numRenders = 0;
             const universeTick = timestamp => {
                 if(!lastTime) lastTime = timestamp;
                 window.requestAnimationFrame(universeTick);
@@ -86,6 +97,7 @@
                 if(delta >= UNIVERSE_UPDATE_TIME) {
                     lastTime = timestamp;
                     updateUniverse();
+                    drawUniverse();
                 }
             };
             window.requestAnimationFrame(universeTick);
