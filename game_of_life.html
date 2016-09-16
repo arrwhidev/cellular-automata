@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Conway's Game of Life</title>
+    </head>
+    <body>
+        <canvas id="canvas" width="800" height="600"></canvas>
+        <script>
+            const ctx = document.getElementById("canvas").getContext("2d");
+            const ACTIVE_COLOUR = '#525564';
+            const INACTIVE_COLOUR = '#BEB9B5';
+            const UNIVERSE_UPDATE_TIME = 100;
+            const WIDTH = 800;
+            const HEIGHT = 600;
+            const SIDE = 20;
+            const NUM_COLS = WIDTH / SIDE;
+            const NUM_ROWS =  HEIGHT / SIDE;
+
+            // Create an empty universe!
+            const universe = [];
+            for(let y = 0; y < NUM_ROWS; y++) {
+                universe[y] = new Array(NUM_COLS);
+                for(let x = 0; x < NUM_COLS; x++) {
+                    universe[y][x] = false;
+                }
+            }
+
+            // Toad
+            universe[10][30] = true;
+            universe[10][31] = true;
+            universe[10][32] = true;
+            universe[11][29] = true;
+            universe[11][30] = true;
+            universe[11][31] = true;
+
+            const cellIsAlive = (y, x) => {
+                if(universe[y] && universe[y][x]) {
+                    return universe[y][x] === true;
+                }
+                return false;
+            }
+
+            const getNumLiveNeighbours = (x, y) => {
+                let count = 0;
+                if(cellIsAlive(y-1, x-1)) count++;
+                if(cellIsAlive(y-1, x)) count++;
+                if(cellIsAlive(y-1, x+1)) count++;
+                if(cellIsAlive(y, x-1)) count++;
+                if(cellIsAlive(y, x+1)) count++;
+                if(cellIsAlive(y+1, x-1)) count++;
+                if(cellIsAlive(y+1, x)) count++;
+                if(cellIsAlive(y+1, x+1)) count++;
+                return count;
+            }
+
+            const calculateIsAlive = (x, y) => {
+                const numLiveNeighbours = getNumLiveNeighbours(x, y);
+                let isAlive = cellIsAlive(y, x);
+
+                if (!isAlive && numLiveNeighbours === 3) return true;
+                if(isAlive) {
+                    if (numLiveNeighbours < 2) return false;
+                    if (numLiveNeighbours === 2 || numLiveNeighbours === 3) return true;
+                    if (numLiveNeighbours > 3) return false;
+                }
+
+                return isAlive;
+            }
+
+            const updateUniverse = () => {
+                for(let y = 0; y < NUM_ROWS; y++) {
+                    for(let x = 0; x < NUM_COLS; x++) {
+                        ctx.fillStyle = universe[y][x] ? ACTIVE_COLOUR : INACTIVE_COLOUR;
+                        ctx.fillRect(x * SIDE, y * SIDE, SIDE, SIDE);
+                        universe[y][x] = calculateIsAlive(x, y);
+                    }
+                }
+            };
+
+            let lastTime;
+            const universeTick = timestamp => {
+                if(!lastTime) lastTime = timestamp;
+                window.requestAnimationFrame(universeTick);
+                const delta = timestamp - lastTime;
+                if(delta >= UNIVERSE_UPDATE_TIME) {
+                    lastTime = timestamp;
+                    updateUniverse();
+                }
+            };
+            window.requestAnimationFrame(universeTick);
+        </script>
+    </body>
+</html>
