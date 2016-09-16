@@ -13,48 +13,44 @@
             const UNIVERSE_UPDATE_TIME = 100;
             const WIDTH = 800;
             const HEIGHT = 600;
-            const SIDE = 20;
-            const NUM_COLS = 10;
-            const NUM_ROWS =  10;
+            const SIDE = 5;
+            const NUM_COLS = WIDTH / SIDE;
+            const NUM_ROWS = HEIGHT / SIDE;
+            let universe;
+            let lastTime;
 
-            // Create an empty universe!
-            const universe = [];
-            for(let y = 0; y < NUM_ROWS; y++) {
-                universe[y] = new Array(NUM_COLS);
-                for(let x = 0; x < NUM_COLS; x++) {
-                    universe[y][x] = 0;
+            const createEmptyUniverse = () => {
+                const arr = [];
+                for(let y = 0; y < NUM_ROWS; y++) {
+                    arr[y] = new Array(NUM_COLS);
+                    for(let x = 0; x < NUM_COLS; x++) {
+                        arr[y][x] = 0;
+                    }
                 }
+                return arr;
             }
 
-            // Blinker
-            universe[5][4] = 1;
-            universe[5][5] = 1;
-            universe[5][6] = 1;
-
-            const cellIsAlive = (y, x) => {
-                if(universe[y] !== undefined && universe[y][x] !== undefined) {
-                    return universe[y][x];
-                }
+            const cellState = (y, x) => {
+                if(universe[y] && universe[y][x]) return universe[y][x];
                 return 0;
             }
 
             const getNumLiveNeighbours = (x, y) => {
                 let count = 0;
-                if(cellIsAlive(y-1, x-1)) count++;
-                if(cellIsAlive(y-1, x)) count++;
-                if(cellIsAlive(y-1, x+1)) count++;
-                if(cellIsAlive(y, x-1)) count++;
-                if(cellIsAlive(y, x+1)) count++;
-                if(cellIsAlive(y+1, x-1)) count++;
-                if(cellIsAlive(y+1, x)) count++;
-                if(cellIsAlive(y+1, x+1)) count++;
+                if(cellState(y-1, x-1)) count++;
+                if(cellState(y-1, x)) count++;
+                if(cellState(y-1, x+1)) count++;
+                if(cellState(y, x-1)) count++;
+                if(cellState(y, x+1)) count++;
+                if(cellState(y+1, x-1)) count++;
+                if(cellState(y+1, x)) count++;
+                if(cellState(y+1, x+1)) count++;
                 return count;
             }
 
             const calculateIsAlive = (x, y) => {
                 const numLiveNeighbours = getNumLiveNeighbours(x, y);
-                let isAlive = cellIsAlive(y, x);
-                // console.log(y, x, 'numLiveNeighbours:', numLiveNeighbours, 'isAlive:', isAlive);
+                let isAlive = cellState(y, x);
 
                 if (isAlive === 1) {
                     if (numLiveNeighbours < 2) {
@@ -68,28 +64,21 @@
                     if (numLiveNeighbours === 3) isAlive = 1;
                 }
 
-                // console.log('  --> returning', isAlive);
                 return isAlive;
             }
 
             const updateUniverse = () => {
-                for(let y = 0; y < NUM_ROWS; y++) {
-                    for(let x = 0; x < NUM_COLS; x++) {
-                        universe[y][x] = calculateIsAlive(x, y);
-                    }
-                }
-            };
-            const drawUniverse = () => {
+                const nextGeneration = createEmptyUniverse();
                 for(let y = 0; y < NUM_ROWS; y++) {
                     for(let x = 0; x < NUM_COLS; x++) {
                         ctx.fillStyle = universe[y][x] ? ACTIVE_COLOUR : INACTIVE_COLOUR;
                         ctx.fillRect(x * SIDE, y * SIDE, SIDE, SIDE);
+                        nextGeneration[y][x] = calculateIsAlive(x, y);
                     }
                 }
+                universe = nextGeneration;
             }
 
-            let lastTime;
-            // let numRenders = 0;
             const universeTick = timestamp => {
                 if(!lastTime) lastTime = timestamp;
                 window.requestAnimationFrame(universeTick);
@@ -97,9 +86,20 @@
                 if(delta >= UNIVERSE_UPDATE_TIME) {
                     lastTime = timestamp;
                     updateUniverse();
-                    drawUniverse();
                 }
-            };
+            }
+
+            // Let's create our universe and begin...
+
+
+            universe = createEmptyUniverse();
+            // add
+
+            // Blinker
+            universe[5][4] = 1;
+            universe[5][5] = 1;
+            universe[5][6] = 1;
+
             window.requestAnimationFrame(universeTick);
         </script>
     </body>
