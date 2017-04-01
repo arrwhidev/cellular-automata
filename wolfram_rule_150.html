@@ -5,68 +5,158 @@
         <title>Cellular Automata</title>
     </head>
     <body>
-        <canvas id="canvas" width="800" height="600"></canvas>
+        <ul id="buttons">
+            <li><button onclick="toggleRandom()">Toggle Random</button></li>
+        </ul>
+        <canvas id="canvas" width="1024" height="768"></canvas>
         <script>
-            const ctx = document.getElementById("canvas").getContext("2d");
-            const ACTIVE_COLOUR = '#525564';
-            const INACTIVE_COLOUR = '#BEB9B5';
-            const WIDTH = 800;
-            const HEIGHT = 600;
-            const SIDE = 3;
-            const NUM_COLS = WIDTH / SIDE;
-            const NUM_ROWS = HEIGHT / SIDE;
-
-            // Rule 150 - http://atlas.wolfram.com/01/01/150/
+            const canvas = document.getElementById("canvas");
+            const ctx = canvas.getContext("2d");
+            const WIDTH = canvas.width;
+            const HEIGHT = canvas.height;
+            const SIDE = 2;
             const RULES = [
-                [1,1,1,1],
-                [1,1,0,0],
-                [1,0,1,0],
-                [1,0,0,1],
-                [0,1,1,0],
-                [0,1,0,1],
-                [0,0,1,1],
-                [0,0,0,0]
-            ];
+                {
+                    id: 45, // http://atlas.wolfram.com/01/01/45/
+                    rules: [
+                        [1,1,1,0],
+                        [1,1,0,0],
+                        [1,0,1,1],
+                        [1,0,0,0],
+                        [0,1,1,1],
+                        [0,1,0,1],
+                        [0,0,1,0],
+                        [0,0,0,1]
+                    ]
+                }, {
+                    id: 105, // http://atlas.wolfram.com/01/01/105/
+                    rules: [
+                        [1,1,1,0],
+                        [1,1,0,1],
+                        [1,0,1,1],
+                        [1,0,0,0],
+                        [0,1,1,1],
+                        [0,1,0,0],
+                        [0,0,1,0],
+                        [0,0,0,1]
+                    ]
+                }, {
+                    id:150, // http://atlas.wolfram.com/01/01/150/
+                    rules: [
+                        [1,1,1,1],
+                        [1,1,0,0],
+                        [1,0,1,0],
+                        [1,0,0,1],
+                        [0,1,1,0],
+                        [0,1,0,1],
+                        [0,0,1,1],
+                        [0,0,0,0]
+                    ]
+                }
+            ]
 
-            const rand = () => Math.floor(Math.random() * 2);
-            const createBlock = (x, y, isActive) => ({ x, y, isActive: isActive });
-            const calculateIsActive = (l, s, r) => {
-                return RULES.reduce((isActive, rule) => {
-                    if(l.isActive == rule[0] && s.isActive == rule[1] && r.isActive == rule[2]) {
-                        isActive = rule[3];
-                    }
-                    return isActive;
-                }, 0);
-            }
+            function createButtonsForRules() {
+                const ul = document.getElementById("buttons");
 
-            const rows = [];
-            for(let row = 0; row < NUM_ROWS; row++) {
-                const y = row * SIDE;
-                rows.push({ cols: [] });
+                for(let i = 0; i < RULES.length; i++) {
+                    const rule = RULES[i];
 
-                for(let col = 0; col < NUM_COLS; col++) {
-                    const x = col * SIDE;
-                    let isActive;
-                    if(row > 0) {
-                        const prevRow = rows[row - 1];
-                        const prevL = prevRow.cols[col - 1] || prevRow.cols[prevRow.cols.length - 1];
-                        const prevSelf = prevRow.cols[col];
-                        const prevR = prevRow.cols[col + 1] || prevRow.cols[0];
-                        isActive = calculateIsActive(prevL, prevSelf, prevR);
-                    } else {
-                        isActive = rand();
-                    }
+                    const btn = document.createElement("button");
+                    btn.onclick = setRule.bind(null, rule.id);
+                    btn.innerHTML = `Rule ${rule.id}`;
 
-                    rows[row].cols.push(createBlock(x, y, isActive));
+                    const li = document.createElement("li");
+                    li.appendChild(btn);
+                    ul.appendChild(li);
                 }
             }
 
-            rows.forEach(row => {
-                row.cols.forEach(col => {
-                    ctx.fillStyle = col.isActive ? ACTIVE_COLOUR : INACTIVE_COLOUR;
-                    ctx.fillRect(col.x, col.y, SIDE, SIDE);
+            function init() {
+                const opts = {
+                    ctx,
+                    activeColour: '#03A9F4',
+                    inactiveColour: '#000',
+                    side: SIDE,
+                    numCols: WIDTH / SIDE,
+                    numRows: HEIGHT / SIDE,
+                    rules: RULES.find(r => r.id === rule).rules,
+                    randomStart: random
+                };
+
+                wolframAtlas(opts);
+            }
+
+            function setRule(_rule) {
+                rule = _rule
+                init();
+            }
+
+            function toggleRandom() {
+                random = !random;
+                init();
+            }
+
+            function wolframAtlas(opts) {
+                const {
+                    ctx,
+                    activeColour,
+                    inactiveColour,
+                    side,
+                    numCols,
+                    numRows,
+                    rules,
+                    randomStart
+                } = opts;
+                const rand = () => Math.floor(Math.random() * 2);
+                const createBlock = (x, y, isActive) => ({ x, y, isActive: isActive });
+                const calculateIsActive = (l, s, r) => {
+                    return rules.reduce((isActive, rule) => {
+                        if(l.isActive == rule[0] && s.isActive == rule[1] && r.isActive == rule[2]) {
+                            isActive = rule[3];
+                        }
+                        return isActive;
+                    }, 0);
+                }
+
+                const rows = [];
+                for(let row = 0; row < numRows; row++) {
+                    const y = row * side;
+                    rows.push({ cols: [] });
+
+                    for(let col = 0; col < numCols; col++) {
+                        const x = col * side;
+                        let isActive;
+
+                        if (row === 0) {
+                            if (randomStart) {
+                                isActive = rand();
+                            } else {
+                                isActive = (col === (Math.floor(numCols / 2))) ? true : false;
+                            }
+                        } else if(row > 0) {
+                            const prevRow = rows[row - 1];
+                            const prevL = prevRow.cols[col - 1] || prevRow.cols[prevRow.cols.length - 1];
+                            const prevSelf = prevRow.cols[col];
+                            const prevR = prevRow.cols[col + 1] || prevRow.cols[0];
+                            isActive = calculateIsActive(prevL, prevSelf, prevR);
+                        }
+
+                        rows[row].cols.push(createBlock(x, y, isActive));
+                    }
+                }
+
+                rows.forEach(row => {
+                    row.cols.forEach(col => {
+                        ctx.fillStyle = col.isActive ? activeColour : inactiveColour;
+                        ctx.fillRect(col.x, col.y, side, side);
+                    });
                 });
-            });
+            }
+
+            let rule = 150;
+            let random = false;
+            init();
+            createButtonsForRules();
         </script>
     </body>
 </html>
