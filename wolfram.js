@@ -147,7 +147,7 @@ function wolfram(canvasId, activeCol, inactiveCol, width, height) {
     let rule = 150;
     let random = false;
     init();
-    createButtonsForRules();
+    // createButtonsForRules();
 
     return {
         toggleRandom
