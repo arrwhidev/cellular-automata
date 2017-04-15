@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Cellular Automata</title>
+        <script src="wolfram.js" charset="utf-8"></script>
+        <script type="text/javascript">
+            var w = {};
+            window.onload = function() {
+                w = wolfram();
+            }
+        </script>
+    </head>
+    <body>
+        <ul id="buttons">
+            <li><button onclick="w.toggleRandom()">Toggle Random</button></li>
+        </ul>
+        <canvas id="canvas" width="1024" height="768"></canvas>
+    </body>
+</html>
