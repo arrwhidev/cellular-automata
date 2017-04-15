@@ -65,8 +65,8 @@ function wolfram(canvasId, activeCol, inactiveCol, width, height) {
     function init() {
         const opts = {
             ctx,
-            activeColour: '#03A9F4',
-            inactiveColour: '#000',
+            activeColour: ACTIVE_COLOUR,
+            inactiveColour: INACTIVE_COLOUR,
             side: SIDE,
             numCols: WIDTH / SIDE,
             numRows: HEIGHT / SIDE,
